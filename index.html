@@ -227,6 +227,28 @@ body.hacker #matrix{opacity:.8}
   .reveal{opacity:1;transform:none}
 }
 
+.avatar-wrap{cursor:pointer}
+
+/* interactive favorites */
+.fav-grid{grid-template-columns:repeat(4,1fr)}
+@media (max-width:900px){.fav-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.fav-grid{grid-template-columns:1fr}}
+.fav-btn{cursor:pointer;user-select:none;position:relative;overflow:hidden}
+.fav-btn:hover{border-color:var(--accent);box-shadow:0 0 22px color-mix(in srgb,var(--accent) 30%,transparent)}
+.fav-btn:active{transform:scale(.97)}
+.fav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fav-btn.hit{animation:wiggle .35s}
+.sizzle{position:relative;height:34px;margin-top:6px}
+.puff{position:absolute;bottom:0;font-size:1.2rem;text-decoration:none;pointer-events:none;animation:rise 1.2s ease-out forwards}
+.blocks{display:flex;flex-wrap:wrap;gap:3px;min-height:34px;margin-top:6px;align-content:flex-start}
+.blocks u{display:block;width:14px;height:14px;border-radius:2px;animation:pop .35s;box-shadow:inset 0 -3px 0 rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,255,255,.14)}
+.stars{font-size:1.4rem;letter-spacing:3px;color:#facc15;margin-top:6px;min-height:34px}
+.loopbar{height:6px;border-radius:9px;background:rgba(148,163,184,.15);overflow:hidden;margin-top:8px}
+.loopbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent2),var(--accent));transition:width .6s}
+.eq.paused s{animation-play-state:paused}
+.song .btn{margin-top:10px;padding:6px 12px;font-size:.85rem;align-self:flex-start}
+@keyframes rise{from{transform:translateY(0) scale(.6);opacity:.9}to{transform:translateY(-34px) scale(1.3);opacity:0}}
+@keyframes wiggle{25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
 </style>
 </head>
 <body>
@@ -303,16 +325,30 @@ body.hacker #matrix{opacity:.8}
       <div class="flip-grid" id="flipGrid"></div>
 
       <div class="fav reveal">
-        <h3>Favorites</h3>
+        <h3>Favorites <small style="font-weight:400;color:var(--muted)">(tap them, they react!)</small></h3>
         <div class="fav-grid">
-          <div class="fav-item"><i>🍽️</i><span>Food</span><b>Sisig</b></div>
-          <div class="fav-item"><i>🎮</i><span>Game</span><b>Minecraft</b></div>
-          <div class="fav-item"><i>🎬</i><span>Movie</span><b>3 Idiots</b></div>
+          <div class="fav-item fav-btn" id="favSisig" role="button" tabindex="0" aria-label="Sisig: tap to sizzle">
+            <i>🍽️</i><span>Food</span><b>Sisig</b>
+            <div class="sizzle" id="sizzle" aria-hidden="true"></div>
+            <small id="sisigMsg">Tap to sizzle!</small>
+          </div>
+          <div class="fav-item fav-btn" id="favMc" role="button" tabindex="0" aria-label="Minecraft: tap to place a block">
+            <i>🎮</i><span>Game</span><b>Minecraft</b>
+            <div class="blocks" id="blocks" aria-hidden="true"></div>
+            <small id="mcMsg">Tap to place a block</small>
+          </div>
+          <div class="fav-item fav-btn" id="favMovie" role="button" tabindex="0" aria-label="3 Idiots: tap to rate">
+            <i>🎬</i><span>Movie</span><b>3 Idiots</b>
+            <div class="stars" id="stars" aria-hidden="true">☆☆☆☆☆</div>
+            <small id="movieMsg">Tap to rate it</small>
+          </div>
           <div class="fav-item song">
             <i>🎵</i><span>Song on loop</span><b>Come Inside of My Heart</b>
             <em>by IV of Spades</em>
             <div class="eq" aria-hidden="true"><s></s><s></s><s></s><s></s><s></s><s></s><s></s></div>
-            <small>Loop #<span id="loopCount">1</span> and counting...</small>
+            <div class="loopbar" aria-hidden="true"><i id="loopFill"></i></div>
+            <small>Loop #<strong id="loopCount">1</strong> &middot; <strong id="loopHrs">0</strong>/72 hrs</small>
+            <button class="btn" id="playBtn" type="button">⏸ Pause</button>
           </div>
         </div>
       </div>
@@ -343,17 +379,10 @@ body.hacker #matrix{opacity:.8}
       <h2 class="reveal"><span>06.</span> How well do you know me?</h2>
       <div class="quiz card reveal" id="quizBox"></div>
     </section>
-
-    <!-- CONTACT -->
-    <section id="contact" class="section contact">
-      <h2 class="reveal"><span>07.</span> Let's connect</h2>
-      <p class="reveal">Want to talk networks, databases, or the best way to cook instant noodles?</p>
-      <div class="cta reveal" id="links"></div>
-    </section>
   </main>
 
   <footer>
-    <p>Built with HTML, CSS &amp; JavaScript only. Hint: try the Konami code <span class="kbd">↑ ↑ ↓ ↓ ← → ← → B A</span></p>
+    <p>Built with HTML, CSS &amp; JavaScript only. Hint: tap my photo 3 times.</p>
   </footer>
 
   <script>
@@ -373,10 +402,10 @@ const ME = {
     "Minecraft Strategist"
   ],
   skills: [
-    { name: "Network Fundamentals & Troubleshooting", level: 85, note: "If it won't connect, I'll ping my way to the cause." },
-    { name: "SQL & Relational Database Design",       level: 80, note: "Tables, keys, joins, and queries that behave." },
-    { name: "Data Normalization & ERD Mapping",       level: 75, note: "1NF to 3NF without crying (much)." },
-    { name: "Remote Desktop & Terminal Access",       level: 85, note: "Comfortable controlling machines from anywhere." }
+    { name: "Network Fundamentals & Troubleshooting", level: 65, note: "If it won't connect, I'll ping my way to the cause." },
+    { name: "SQL & Relational Database Design",       level: 60, note: "Tables, keys, joins, and queries that behave." },
+    { name: "Data Normalization & ERD Mapping",       level: 55, note: "1NF to 3NF without crying (much)." },
+    { name: "Remote Desktop & Terminal Access",       level: 70, note: "Comfortable controlling machines from anywhere." }
   ],
   hobbies: [
     { icon: "🎮", title: "Mobile Legends", back: "Strategy and teamwork, one match at a time." },
@@ -418,7 +447,6 @@ const rootEl = document.documentElement;
 $$("[data-bind]").forEach(el => (el.textContent = ME[el.dataset.bind]));
 const initials = ME.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 $("#avatar").innerHTML = ME.photo ? `<img src="${ME.photo}" alt="Photo of ${ME.name}">` : `<span class="grad">${initials}</span>`;
-$("#links").innerHTML = ME.links.map(l => `<a class="btn" href="${l.href}" target="_blank" rel="noopener">${l.label}</a>`).join("");
 
 /* ============================ secrets tracker ============================ */
 const found = new Set();
@@ -552,9 +580,71 @@ $$(".quirk").forEach(q => q.addEventListener("click", () => {
   else toast("Quirk decrypted! " + $$(".quirk.open").length + "/" + ME.quirks.length);
 }));
 
-/* ============================ looping song counter ============================ */
-let loops = 1;
-setInterval(() => { loops++; $("#loopCount").textContent = loops; }, 3000);
+/* ============================ interactive favorites ============================ */
+function tapify(el, fn) {
+  el.addEventListener("click", () => { fn(); el.classList.remove("hit"); void el.offsetWidth; el.classList.add("hit"); });
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } });
+}
+
+// Sisig: tap to sizzle
+let sizzles = 0;
+const sisigMsgs = ["Sizzling... 🔥", "Extra crispy!", "Add calamansi 🍋", "Egg on top? Yes. 🍳", "Chef's kiss. Perfect sisig."];
+tapify($("#favSisig"), () => {
+  sizzles++;
+  $("#sisigMsg").textContent = sisigMsgs[Math.min(sizzles - 1, sisigMsgs.length - 1)] + (sizzles > sisigMsgs.length ? "  x" + sizzles : "");
+  const box = $("#sizzle");
+  for (let i = 0; i < 3; i++) {
+    const puff = document.createElement("s");
+    puff.className = "puff";
+    puff.textContent = i === 1 ? "🔥" : "💨";
+    puff.style.left = 10 + Math.random() * 70 + "%";
+    puff.style.animationDelay = i * 0.12 + "s";
+    puff.addEventListener("animationend", () => puff.remove());
+    box.appendChild(puff);
+  }
+});
+
+// Minecraft: tap to place blocks
+let placed = 0;
+const mcColors = ["#5b8c3a", "#8b5a2b", "#7d7d7d", "#22d3ee", "#d4a017"];
+tapify($("#favMc"), () => {
+  const box = $("#blocks");
+  if (placed >= 20) { box.innerHTML = ""; placed = 0; }
+  const u = document.createElement("u");
+  u.style.background = mcColors[Math.floor(Math.random() * mcColors.length)];
+  box.appendChild(u);
+  placed++;
+  $("#mcMsg").textContent = placed >= 20 ? "Epic build! Tap to start over." : "Blocks placed: " + placed;
+});
+
+// 3 Idiots: tap to rate
+let rate = 0;
+const movieMsgs = ["Good one", "Really good", "Awesome", "Rewatch-worthy", "5/5 - All is well!"];
+tapify($("#favMovie"), () => {
+  rate = (rate % 5) + 1;
+  $("#stars").textContent = "★".repeat(rate) + "☆".repeat(5 - rate);
+  $("#movieMsg").textContent = movieMsgs[rate - 1];
+});
+
+// Song: play/pause + 72-hour loop meter
+let loops = 1, hrs = 0, playing = true;
+const eqBars = $(".song .eq"), playBtn = $("#playBtn");
+playBtn.addEventListener("click", () => {
+  playing = !playing;
+  eqBars.classList.toggle("paused", !playing);
+  playBtn.textContent = playing ? "⏸ Pause" : "▶ Play";
+});
+setInterval(() => {
+  if (!playing) return;
+  loops++;
+  $("#loopCount").textContent = loops;
+  if (hrs < 72) {
+    hrs++;
+    $("#loopHrs").textContent = hrs;
+    $("#loopFill").style.width = (hrs / 72) * 100 + "%";
+    if (hrs === 72) toast("🎧 72 hours reached. Every drop memorized!");
+  }
+}, 2000);
 
 /* ============================ terminal ============================ */
 const out = $("#termOut"), input = $("#termIn");
@@ -668,15 +758,12 @@ function burst() {
   }
 }
 
-/* ============================ Konami easter egg ============================ */
-const code = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
-let ki = 0;
-addEventListener("keydown", e => {
-  if (e.target === input) return;
-  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
-  ki = k === code[ki] ? ki + 1 : (k === code[0] ? 1 : 0);
-  if (ki === code.length) {
-    ki = 0;
+/* ============================ Hacker mode: tap the photo 3 times ============================ */
+let taps = 0, tapTimer;
+$(".avatar-wrap").addEventListener("click", () => {
+  taps++; clearTimeout(tapTimer); tapTimer = setTimeout(() => (taps = 0), 1500);
+  if (taps >= 3) {
+    taps = 0;
     document.body.classList.toggle("hacker");
     speedBoost = document.body.classList.contains("hacker") ? 4 : 1;
     setTheme("matrix", true);
